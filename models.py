@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from sqlalchemy import (Boolean, Column, Date, DateTime, ForeignKey, Integer, 
+from sqlalchemy import (Boolean, Column, Date, DateTime, ForeignKey, Integer,
     MetaData, Numeric, Table, Unicode, UnicodeText)
 from sqlalchemy.orm import mapper, relation
 
@@ -111,7 +111,25 @@ class Purchase(EntityBase):
                self.fuel_price, self.fuel_type, self.filled_tank, )
 
 
-mapper(FuelType, fueltype_table)
-mapper(Outlet, outlet_table)
-mapper(Vehicle, vehicle_table)
-mapper(Purchase, purchase_table)
+mapper(FuelType, fueltype_table,
+    properties={
+        'purchases': relation(Purchase)
+    }
+)
+mapper(Outlet, outlet_table,
+    properties={
+        'purchases': relation(Purchase)
+    }
+)
+mapper(Vehicle, vehicle_table,
+    properties={
+        'purchases': relation(Purchase)
+    }
+)
+mapper(Purchase, purchase_table,
+    properties={
+        'vehicle': relation(Vehicle, uselist=False),
+        'fuel_type': relation(FuelType, uselist=False),
+        'outlet': relation(Outlet, uselist=False),
+    }
+)
