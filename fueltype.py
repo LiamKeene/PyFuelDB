@@ -1,11 +1,52 @@
 # -*- coding: utf-8 -*-
 import sys
 
+from optparse import OptionParser
+
 from PyQt4 import QtCore, QtGui
 
 from lib import *
 from models import FuelType
 from ui_fueltype import Ui_FuelTypeDialog
+
+
+def run_dialog():
+    """Run the dialog.
+
+    Create the QApplication (before modifying sys.argv)
+    then parse sys.argv for acceptable command line
+    parameters.
+
+    """
+    app = QtGui.QApplication(sys.argv)
+
+    # Create an OptionParser
+    usage = '%prog [OPTIONS] [FILE...]'
+    description = 'Create, Edit or Delete a FuelType.'
+    parser = OptionParser(usage=usage, description=description)
+    parser.add_option('-e', action='store', type='int', dest='edit',
+        metavar='ID', help='Edit an existing fueltype'
+    )
+    parser.add_option('-d', action='store', type='int', dest='delete',
+        metavar='ID', help='Delete an existing fueltype'
+    )
+    (options, args) = parser.parse_args(sys.argv[1:])
+
+    if not args:
+        parser.error('No database file was specified.')
+
+    db_file = args[0]
+
+    if options.edit and options.delete:
+        parser.error('Cannot edit and delete at the same time!')
+
+    # Create a database connection
+    sessionmaker = get_sessionmaker(get_engine(db_file))
+    myapp = FuelTypeDialog(
+        sessionmaker=sessionmaker, edit=options.edit, delete=options.delete
+    )
+    myapp.show()
+    sys.exit(app.exec_())
 
 
 class FuelTypeDialog(QtGui.QDialog):
@@ -15,7 +56,7 @@ class FuelTypeDialog(QtGui.QDialog):
     to a database.
 
     """
-    def __init__(self, parent=None, sessionmaker=None):
+    def __init__(self, sessionmaker=None, edit=None, delete=None, parent=None):
 
         QtGui.QDialog.__init__(self, parent)
 
@@ -64,10 +105,4 @@ class FuelTypeDialog(QtGui.QDialog):
 
 
 if __name__ == '__main__':
-    # Create a database connection
-    sessionmaker = get_sessionmaker(get_engine(sys.argv[1]))
-
-    app = QtGui.QApplication(sys.argv)
-    myapp = FuelTypeDialog(sessionmaker=sessionmaker)
-    myapp.show()
-    sys.exit(app.exec_())
+    run_dialog()
