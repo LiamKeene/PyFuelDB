@@ -10,12 +10,12 @@ from models import *
 
 def create_database(path='test.db'):
     """Create database.
-    
+
     Setup a temporary sqlite database and populate
     with some test data.
-    
+
     Returns the engine and a session bound to the database.
-    
+
     """
     # If database already exists, remove it
     if os.path.exists(path):
@@ -41,11 +41,11 @@ def create_database(path='test.db'):
         {'id': 4, 'name': u'Newcastle Mobil', 'location': u'F3 Freeway'},
     ]
     vehicle_data = [
-        {'rego': u'ABC-123', 'year': u'1991', 'make': u'Toyota', 'model': u'Corolla', 
+        {'rego': u'ABC-123', 'year': u'1991', 'make': u'Toyota', 'model': u'Corolla',
          'purchased': datetime(2001, 8, 25), 'initial_km': 85324, 'odometer': 146814, },
-        {'rego': u'XYZ-987', 'year': u'2003', 'make': u'Toyota', 'model': u'Camry'},
+        {'rego': u'XYZ-987', 'year': u'2003', 'make': u'Toyota', 'model': u'Camry',
          'purchased': datetime(2008, 6, 15), 'initial_km': 15920, 'odometer': 24921, },
-        {'rego': u'AB-12-CD', 'year': u'2009', 'make': u'Subaru', 'model': u'Liberty'}
+        {'rego': u'AB-12-CD', 'year': u'2009', 'make': u'Subaru', 'model': u'Liberty',
          'purchased': datetime(2010, 1, 7), 'initial_km': 0, 'odometer': 915, },
     ]
     purchase_data = [

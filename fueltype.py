@@ -43,7 +43,7 @@ def run_dialog():
     # Create a database connection
     sessionmaker = get_sessionmaker(get_engine(db_file))
     myapp = FuelTypeDialog(
-        sessionmaker=sessionmaker, edit=options.edit, delete=options.delete
+        sessionmaker, edit=options.edit, delete=options.delete
     )
     myapp.show()
     sys.exit(app.exec_())
@@ -56,52 +56,103 @@ class FuelTypeDialog(QtGui.QDialog):
     to a database.
 
     """
-    def __init__(self, sessionmaker=None, edit=None, delete=None, parent=None):
+    def __init__(self, sessionmaker, edit=None, delete=None, parent=None):
 
         QtGui.QDialog.__init__(self, parent)
 
         self.ui = Ui_FuelTypeDialog()
         self.ui.setupUi(self)
 
-        self.sessionmaker = sessionmaker
+        # Create a bound session for the QDialog
+        self.session = sessionmaker()
+
+        if edit:
+            self.setWindowTitle('Edit FuelType')
+
+            self.fuel_type = self.get_fueltype(edit)
+            accept_method = self.update_fueltype
+
+        elif delete:
+            self.setWindowTitle('Delete FuelType')
+
+            self.fuel_type = self.get_fueltype(delete)
+            accept_method = self.delete_fueltype
+
+        else:
+            accept_method = self.add_fueltype
 
         # Connect QDialog signals
         QtCore.QObject.connect(self,
             QtCore.SIGNAL('accepted()'),
-            self.accept_fueltype
+            accept_method
         )
         QtCore.QObject.connect(self,
             QtCore.SIGNAL('rejected()'),
-            self.reject_fueltype
+            self.reject_dialog
         )
 
-    def accept_fueltype(self):
-        """Accept FuelType.
+    def add_fueltype(self):
+        """Add FuelType.
 
-        Called when the QDialog recieves the accepted signal, usually
-        from a button on the dialog.
-
-        Creates a bound session object, a new FuelType object
-        and saves it.
+        Create a new FuelType object and save it.
 
         """
-        session = self.sessionmaker()
         fuel_type = FuelType(
             name=unicode(self.ui.name_line_edit.text()),
             vendor=unicode(self.ui.vendor_line_edit.text()),
             ron=unicode(self.ui.ron_line_edit.text())
         )
-        session.add(fuel_type)
-        session.commit()
+        self.session.add(fuel_type)
+        self.session.commit()
 
-    def reject_fueltype(self):
-        """Reject FuelType.
+    def delete_fueltype(self):
+        """Delete FuelType.
+
+        Delete the FuelType from the database.
+
+        """
+        self.session.delete(self.fuel_type)
+        self.session.commit()
+
+    def get_fueltype(self, id):
+        """Get FuelType.
+
+        Query the database using the given FuelType id, and populate
+        the QDialog's widgets.
+
+        """
+        fuel_type = self.session.query(FuelType).get(id)
+
+        if not fuel_type:
+            raise Exception('FuelType %s was not found!' % (id, ))
+
+        self.ui.name_line_edit.setText(fuel_type.name)
+        self.ui.vendor_line_edit.setText(fuel_type.vendor)
+        self.ui.ron_line_edit.setText(fuel_type.ron)
+
+        return fuel_type
+
+    def update_fueltype(self):
+        """Update FuelType.
+
+        Update the FuelType with values from the QDialog's widgets.
+
+        TODO: Only update fields that have been modified.
+
+        """
+        self.fuel_type.name = unicode(self.ui.name_line_edit.text())
+        self.fuel_type.vendor = vendor=unicode(self.ui.vendor_line_edit.text())
+        self.fuel_type.ron=unicode(self.ui.ron_line_edit.text())
+        self.session.commit()
+
+    def reject_dialog(self):
+        """Reject Dialog.
 
         Called when the QDialog recieves the rejected signal, usually
         from a button on the dialog.
 
         """
-        print 'Rejected FuelType'
+        print 'Rejected changes'
 
 
 if __name__ == '__main__':

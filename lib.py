@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from models import metadata
 
-def get_engine(path, echo=True):
+def get_engine(path, echo=False):
     """Returns a connection to the database.
 
     If the database path does not exist a new blank database
