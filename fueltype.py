@@ -1,13 +1,29 @@
 # -*- coding: utf-8 -*-
 import sys
 
-from optparse import OptionParser
+from optparse import IndentedHelpFormatter, OptionParser
 
 from PyQt4 import QtCore, QtGui
 
 from lib import *
 from models import FuelType
 from ui_fueltype import Ui_FuelTypeDialog
+
+
+class RawIndentedHelpFormatter(IndentedHelpFormatter):
+    """RawIndentedHelpFormatter.
+
+    Overrides IndentedHelpFormatter to return help elements without any special
+    formatting, textwrap, etc.
+
+    """
+    def format_epilog(self, epilog):
+        """format_epilog.
+
+        Return the epilog without formatting.
+
+        """
+        return '\n%s\n' % (epilog, )
 
 
 def run_dialog():
@@ -23,7 +39,28 @@ def run_dialog():
     # Create an OptionParser
     usage = '%prog [OPTIONS] [FILE...]'
     description = 'Create, Edit or Delete a FuelType.'
-    parser = OptionParser(usage=usage, description=description)
+    epilog = """Examples:\
+
+  Create a new fueltype in the given SQLite database
+
+    python fueltype.py pyfueldb.db
+
+  Edit an existing fueltype in the given SQLite database
+
+    python fueltype.py -e 1 pyfueldb.db
+
+  Delete an existing fueltype from the given SQLite database
+
+    python fueltype.py -d 1 pyfueldb.db
+
+  The SQLite database file should be specified otherwise changes
+  will not be recorded.
+  """
+
+    parser = OptionParser(
+        usage=usage, description=description, epilog=epilog,
+        formatter=RawIndentedHelpFormatter()
+    )
     parser.add_option('-e', action='store', type='int', dest='edit',
         metavar='ID', help='Edit an existing fueltype'
     )
@@ -52,8 +89,7 @@ def run_dialog():
 class FuelTypeDialog(QtGui.QDialog):
     """FuelTypeDialog.
 
-    Qt QDialog that allows the user to add a FuelType object
-    to a database.
+    Qt QDialog that allows the user to add, edit or delete a FuelType.
 
     """
     def __init__(self, sessionmaker, edit=None, delete=None, parent=None):
