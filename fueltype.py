@@ -84,15 +84,6 @@ class FuelTypeDialog(BaseDialog):
         self.fueltype.ron=unicode(self.ui.ron_line_edit.text())
         self.session.commit()
 
-    def reject_dialog(self):
-        """Reject Dialog.
-
-        Called when the QDialog recieves the rejected signal, usually
-        from a button on the dialog.
-
-        """
-        print 'Rejected changes'
-
 
 if __name__ == '__main__':
     run_dialog(FuelTypeDialog)
