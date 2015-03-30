@@ -17,6 +17,12 @@ class FuelTypeDialog(BaseDialog):
     """
     object_name = 'FuelType'
 
+    widget_field_map = {
+        'name_line_edit': 'name',
+        'vendor_line_edit': 'vendor',
+        'ron_line_edit': 'ron',
+    }
+
     def __init__(self, sessionmaker, edit=None, delete=None, parent=None):
 
         BaseDialog.__init__(
@@ -36,12 +42,14 @@ class FuelTypeDialog(BaseDialog):
         Create a new FuelType object and save it.
 
         """
-        fuel_type = FuelType(
-            name=unicode(self.ui.name_line_edit.text()),
-            vendor=unicode(self.ui.vendor_line_edit.text()),
-            ron=unicode(self.ui.ron_line_edit.text())
-        )
-        self.session.add(fuel_type)
+        kwargs = {}
+        for widget, field in self.widget_field_map.items():
+            kwargs[field] = self._get_widget_value(widget)
+
+        fueltype = FuelType(**kwargs)
+
+        self.session.add(fueltype)
+
         self.session.commit()
 
     def delete_object(self):
@@ -51,6 +59,7 @@ class FuelTypeDialog(BaseDialog):
 
         """
         self.session.delete(self.fueltype)
+
         self.session.commit()
 
     def get_object(self, id):
@@ -60,16 +69,12 @@ class FuelTypeDialog(BaseDialog):
         the QDialog's widgets.
 
         """
-        fuel_type = self.session.query(FuelType).get(id)
+        fueltype = self.session.query(FuelType).get(id)
 
-        if not fuel_type:
+        if not fueltype:
             raise Exception('FuelType %s was not found!' % (id, ))
 
-        self.ui.name_line_edit.setText(fuel_type.name)
-        self.ui.vendor_line_edit.setText(fuel_type.vendor)
-        self.ui.ron_line_edit.setText(fuel_type.ron)
-
-        return fuel_type
+        return fueltype
 
     def update_object(self):
         """Update FuelType.
@@ -79,9 +84,10 @@ class FuelTypeDialog(BaseDialog):
         #TODO Only update fields that have been modified.
 
         """
-        self.fueltype.name = unicode(self.ui.name_line_edit.text())
-        self.fueltype.vendor = vendor=unicode(self.ui.vendor_line_edit.text())
-        self.fueltype.ron=unicode(self.ui.ron_line_edit.text())
+        for widget, field in self.widget_field_map.items():
+            value = self._get_widget_value(widget)
+            self._set_field_value(field, value)
+
         self.session.commit()
 
 
