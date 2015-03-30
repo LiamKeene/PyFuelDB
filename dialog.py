@@ -96,8 +96,12 @@ class BaseDialog(QtGui.QDialog):
 
     :object_name - string representing the name of the associated object.
 
+    :widget_field_map - dictionary that maps widget names to object attributes.
+
     """
     object_name = 'Object'
+
+    widget_field_map = {}
 
     def __init__(self, sessionmaker, edit=None, delete=None, parent=None):
         """Initialise an instance of this QDialog.
@@ -128,12 +132,14 @@ class BaseDialog(QtGui.QDialog):
             self.setWindowTitle('Edit %s' % (self.object_name, ))
 
             setattr(self, self.object_name.lower(), self.get_object(edit))
+            self._populate_widgets()
             accept_method = self.update_object
 
         elif delete:
             self.setWindowTitle('Delete %s' % (self.object_name, ))
 
             setattr(self, self.object_name.lower(), self.get_object(delete))
+            self._populate_widgets()
             accept_method = self.delete_object
 
         else:
@@ -156,6 +162,77 @@ class BaseDialog(QtGui.QDialog):
 
         """
         raise NotImplementedError
+
+    def _populate_widgets(self):
+        """Populate dialog widgets.
+
+        Using the widget to field mapping, populate the widgets
+        from the object's attributes.
+
+        """
+        for widget, field in self.widget_field_map.items():
+            value = self._get_field_value(field)
+            self._set_widget_value(widget, value)
+
+    def _get_field_value(self, field):
+        """Get the value of a field.
+
+        :field - string, field to get value of
+
+        """
+        #TODO some type checking
+        return getattr(
+            getattr(self, self.object_name.lower()), field
+        )
+
+    def _set_field_value(self, field, value):
+        """Set the value of a field.
+
+        :field - string; name of the field (object attribute)
+
+        :value - the value to set
+
+        """
+        #TODO Some type checking
+        setattr(
+            getattr(self, self.object_name.lower()),
+            field, unicode(value)
+        )
+
+    def _get_widget_value(self, widget):
+        """Get the values of a widget.
+
+        :widget - string; name of the QWdiget
+
+        """
+        widget = getattr(self.ui, widget)
+
+        if isinstance(widget, (QtGui.QLineEdit, )):
+            return unicode(widget.text())
+
+        raise TypeError('Cannot handle widget ' \
+            '%(widget_type)s with name `%(widget_name)s`.'
+            % {'widget_name': widget.objectName(), 'widget_type': type(widget), }
+        )
+
+    def _set_widget_value(self, widget, value):
+        """Set the value of a widget.
+
+        :widget - string; name of the QWidget
+
+        :value - the value to set
+
+        """
+        widget = getattr(self.ui, widget)
+
+        if isinstance(widget, (QtGui.QLineEdit, )):
+            widget.setText(value)
+
+        else:
+            raise TypeError('Cannot handle widget ' \
+                '%(widget_type)s with name `%(widget_name)s`.'
+                % {'widget_name': widget.objectName(), 'widget_type': type(widget), }
+            )
 
     def create_object(self):
         """Create Object.
