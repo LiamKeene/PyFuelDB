@@ -36,8 +36,8 @@ vehicle_table = Table('vehicle', metadata,
     Column('initial_km', Numeric(precision=8, scale=1)),
     Column('odometer', Numeric(precision=8, scale=1)),
     Column('notes', UnicodeText),
-    Column('entered', DateTime, default=datetime.now),
-    Column('modified', DateTime, default=datetime.now, onupdate=datetime.now),
+    Column('created', DateTime, default=datetime.now),
+    Column('updated ', DateTime, default=datetime.now, onupdate=datetime.now),
 )
 
 purchase_table = Table('purchase', metadata,
@@ -52,8 +52,8 @@ purchase_table = Table('purchase', metadata,
     Column('discount', Numeric(precision=3, scale=2)),
     Column('est_eff', Numeric(precision=3, scale=1)),
     Column('driving_notes', UnicodeText),
-    Column('entered', DateTime, default=datetime.now),
-    Column('modified', DateTime, default=datetime.now, onupdate=datetime.now),
+    Column('created', DateTime, default=datetime.now),
+    Column('updated', DateTime, default=datetime.now, onupdate=datetime.now),
 )
 
 
