@@ -9,27 +9,20 @@ from lib import *
 
 
 class RawIndentedHelpFormatter(IndentedHelpFormatter):
-    """RawIndentedHelpFormatter.
-
-    Overrides IndentedHelpFormatter to return help elements without any special
-    formatting, textwrap, etc.
+    """Overrides IndentedHelpFormatter to return help elements without any
+    special formatting, textwrap, etc.
 
     """
     def format_epilog(self, epilog):
-        """format_epilog.
-
-        Return the epilog without formatting.
+        """Return the epilog without formatting.
 
         """
         return '\n%s\n' % (epilog, )
 
 
 def run_dialog(klass):
-    """Run the dialog.
-
-    Create the QApplication (before modifying sys.argv)
-    then parse sys.argv for acceptable command line
-    parameters.
+    """Create the QApplication (before modifying sys.argv) then parse sys.argv
+    for acceptable command line parameters.
 
     """
     app = QtGui.QApplication(sys.argv)
@@ -88,9 +81,7 @@ def run_dialog(klass):
 
 
 class BaseDialog(QtGui.QDialog):
-    """BaseDialog.
-
-    Abstract base class for PyFuelDB QDialogs.  Subclasses of the BaseDialog
+    """Abstract base class for PyFuelDB QDialogs.  Subclasses of the BaseDialog
     will allow a user to create, edit or delete objects associated with
     the subclass.
 
@@ -145,12 +136,14 @@ class BaseDialog(QtGui.QDialog):
         else:
             accept_method = self.create_object
 
-        # Connect QDialog signals
-        QtCore.QObject.connect(self,
+        # Connect QDialogButtonBox signals
+        QtCore.QObject.connect(
+            self.ui.button_box,
             QtCore.SIGNAL('accepted()'),
             accept_method
         )
-        QtCore.QObject.connect(self,
+        QtCore.QObject.connect(
+            self.ui.button_box,
             QtCore.SIGNAL('rejected()'),
             self.reject_dialog
         )
@@ -267,13 +260,12 @@ class BaseDialog(QtGui.QDialog):
         raise NotImplementedError
 
     def reject_dialog(self):
-        """Reject Dialog.
-
-        Called when the QDialog recieves the rejected signal, usually
-        from a button on the dialog.
+        """Called when the QDialogButtonBox recieves the rejected signal, usually
+        from a QDialogButtonBox button with a RejectRole.
 
         """
         print 'Rejected changes'
+        self.reject()
 
 
 if __name__ == '__main__':

@@ -10,9 +10,7 @@ from ui_fueltype import Ui_FuelTypeDialog
 
 
 class FuelTypeDialog(BaseDialog):
-    """FuelTypeDialog.
-
-    Qt QDialog that allows the user to add, edit or delete a FuelType.
+    """Qt QDialog that allows the user to add, edit or delete a FuelType.
 
     """
     object_name = 'FuelType'
@@ -37,9 +35,9 @@ class FuelTypeDialog(BaseDialog):
         self.ui.setupUi(self)
 
     def create_object(self):
-        """Create FuelType.
+        """Create a new FuelType object using values from the QDialog's widgets.
 
-        Create a new FuelType object and save it.
+        Adds it to the bound SQLAlchemy session and calls `QDialog.accept`.
 
         """
         kwargs = {}
@@ -52,21 +50,30 @@ class FuelTypeDialog(BaseDialog):
 
         self.session.commit()
 
-    def delete_object(self):
-        """Delete FuelType.
+        self.accept()
 
-        Delete the FuelType from the database.
+    def delete_object(self):
+        """Delete the FuelType from the database.
+
+        Get user to confirm deletion then call `QDialog.accept`.
 
         """
-        self.session.delete(self.fueltype)
+        ret = QtGui.QMessageBox.warning(
+            self, 'Delete FuelType?',
+            'Do you really want to delete this FuelType?\n%s' % self.fueltype,
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
+        )
+        if ret == QtGui.QMessageBox.Yes:
+            self.session.delete(self.fueltype)
 
-        self.session.commit()
+            self.session.commit()
+
+            self.accept()
+
 
     def get_object(self, id):
-        """Get FuelType.
-
-        Query the database using the given FuelType id, and populate
-        the QDialog's widgets.
+        """Query the database using the given id and return the matching
+        FuelType.
 
         """
         fueltype = self.session.query(FuelType).get(id)
@@ -77,9 +84,8 @@ class FuelTypeDialog(BaseDialog):
         return fueltype
 
     def update_object(self):
-        """Update FuelType.
-
-        Update the FuelType with values from the QDialog's widgets.
+        """Update the FuelType object using values from the QDialog's widgets
+        and call `QDialog.accept`.
 
         #TODO Only update fields that have been modified.
 
@@ -89,6 +95,8 @@ class FuelTypeDialog(BaseDialog):
             self._set_field_value(field, value)
 
         self.session.commit()
+
+        self.accept()
 
 
 if __name__ == '__main__':
