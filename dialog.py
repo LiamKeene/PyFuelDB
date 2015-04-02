@@ -81,15 +81,26 @@ def run_dialog(klass):
 
 
 class BaseDialog(QtGui.QDialog):
-    """Abstract base class for PyFuelDB QDialogs.  Subclasses of the BaseDialog
-    will allow a user to create, edit or delete objects associated with
-    the subclass.
+    """Base class for PyFuelDB QDialogs.
 
-    :object_name - string representing the name of the associated object.
+    Subclasses of the BaseDialog will allow a user to create, edit or delete
+    objects associated with the subclass.
+
+    :object_class - actual class model representing the object.  This must be
+        set by inheriting subclasses for create, edit and delete methods to work.
+
+    :object_name - string representing the name of the associated object.  This
+        should be set by inheriting classes for UI strings, dialog titles, etc.
 
     :widget_field_map - dictionary that maps widget names to object attributes.
+        This must be set by inheriting classes otherwise DB methods will not be
+        able to interact with the UI.
+
+    # TODO - enforce setting of appropriate attributes by subclasses.
+    # TODO - determine if any attributes/widgets are missing from widget_field_map.
 
     """
+    object_class = None
     object_name = 'Object'
 
     widget_field_map = {}
@@ -228,36 +239,75 @@ class BaseDialog(QtGui.QDialog):
             )
 
     def create_object(self):
-        """Create Object.
+        """Create a new object using values from the QDialog's widgets.
 
-        Must be implemented by subclasses.
+        Adds it to the bound SQLAlchemy session and calls `QDialog.accept`.
 
         """
-        raise NotImplementedError
+        if self.object_class is None:
+            raise TypeError('Class attribute `object_class` not defined in subclass')
+
+        kwargs = {}
+        for widget, field in self.widget_field_map.items():
+            kwargs[field] = self._get_widget_value(widget)
+
+        object_instance = self.object_class(**kwargs)
+
+        self.session.add(object_instance)
+
+        self.session.commit()
+
+        self.accept()
 
     def delete_object(self):
-        """Delete Object.
+        """Delete the object from the database.
 
-        Must be implemented by subclasses.
+        Get user to confirm deletion then call `QDialog.accept`.
 
         """
-        raise NotImplementedError
+        ret = QtGui.QMessageBox.warning(
+            self, 'Delete %(object_name)s?' % {'object_name': self.object_name, },
+            'Do you really want to delete this %(object_name)s?\n%(object)s' % {
+                'object': getattr(self, self.object_name.lower()),
+                'object_name': self.object_name, },
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
+        )
+        if ret == QtGui.QMessageBox.Yes:
+            self.session.delete(getattr(self, self.object_name.lower()))
+
+            self.session.commit()
+
+            self.accept()
 
     def get_object(self, id):
-        """Get Object.
-
-        Must be implemented by subclasses.
+        """Query the database using the given id and return the matching object.
 
         """
-        raise NotImplementedError
+        if self.object_class is None:
+            raise TypeError('Class attribute `object_class` not defined in subclass')
+
+        object_instance = self.session.query(self.object_class).get(id)
+
+        if not object_instance:
+            raise Exception('%(object_name)s %(object_id)s was not found!' % {
+                'object_id': id, 'object_name': self.object_name, })
+
+        return object_instance
 
     def update_object(self):
-        """Update Object.
+        """Update the object using values from the QDialog's widgets and call
+        `QDialog.accept`.
 
-        Must be implemented by subclasses.
+        #TODO Only update fields that have been modified.
 
         """
-        raise NotImplementedError
+        for widget, field in self.widget_field_map.items():
+            value = self._get_widget_value(widget)
+            self._set_field_value(field, value)
+
+        self.session.commit()
+
+        self.accept()
 
     def reject_dialog(self):
         """Called when the QDialogButtonBox recieves the rejected signal, usually
