@@ -34,15 +34,15 @@ def run_dialog(klass):
 
   Create a new %(object_name)s in the given SQLite database
 
-    python %(prog_name)s.py pyfueldb.db
+    python %(prog_name)s pyfueldb.db
 
   Edit an existing %(object_name)s in the given SQLite database
 
-    python %(prog_name)s.py -e 1 pyfueldb.db
+    python %(prog_name)s -e 1 pyfueldb.db
 
   Delete an existing %(object_name)s from the given SQLite database
 
-    python %(prog_name)s.py -d 1 pyfueldb.db
+    python %(prog_name)s -d 1 pyfueldb.db
 
   The SQLite database file should be specified otherwise changes
   will not be recorded.
